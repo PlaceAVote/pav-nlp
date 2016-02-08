@@ -6,5 +6,7 @@
                  [org.clojure/tools.logging "0.3.1"]
                  [ring/ring-jetty-adapter "1.4.0"]]
   :global-vars {*warn-on-reflection* true}
+  :uberjar-name "pav-nlp-playground.jar"
+  :jvm-opts ["-server"]
   :repl-options {:port 7888}
   :main pav-nlp-playground.core)
