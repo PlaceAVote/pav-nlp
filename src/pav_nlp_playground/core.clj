@@ -26,6 +26,14 @@
     (ok (extractor body))
     (not-found)))
 
+(defn- extract-all-tags
+  "Extract all tags grom given id."
+  [^String id]
+  (if-let [body (read-bill id)]
+    (ok {:people (f/find-names body)
+         :organizations (f/find-orgs body)})
+    (not-found)))
+
 (defn- compute-sentiment
   "Calculate sentiment."
   [^String id]
@@ -37,6 +45,15 @@
          "negative")))
     (not-found)))
 
+(defn- find-matched-sentences
+  "Find sentences that has given entities or tags. Highlight them optionally."
+  [^String id entities ^String hi-start ^String hi-end icase?]
+  (if-let [body (read-bill id)]
+    (ok
+     (f/sentences-by-entities body entities {:hi-start hi-start
+                                             :hi-end hi-end
+                                             :ignore-case? icase?}))
+    (not-found)))
 
 (s/defschema StringList [s/Str])
 
@@ -68,13 +85,30 @@
         :return String
         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
         :summary "Returns bill sentiment. For now, sentiment is generated based on Twitter messages tone as sample. Returns 'positive' or 'negative'."
-        (compute-sentiment bill_id))) ))
+        (compute-sentiment bill_id))
+      (GET "/sentences/:bill_id" []
+        :return s/Any
+        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
+        :query-params [{ignore-case  :- (describe s/Bool "Ignore case for entity search.") false}
+                       {hi-tag-end   :- (describe String "End tag for highlighting matches. E.g. &lt/b&gt.") ""}
+                       {hi-tag-start :- (describe String "Start tag for highlighting matches. E.g. &ltb&gt.") ""}
+                       entities      :- (describe StringList "List of entities to be looked for")]
+        :summary "Find all sentences that has given entities. Optionally highlight them with desired html tags."
+        (find-matched-sentences bill_id entities hi-tag-start hi-tag-end ignore-case) ))
+    (context "/tags" []
+      :tags ["tags"]
+      (GET "/:bill_id" []
+           :return s/Any
+           :path-params [bill_id :- (describe String "Bill ID (e.g. hr2002)")]
+           :summary "Returns all tags related to the bill. Tags are split between people type tags and orgs type tags."
+           (extract-all-tags bill_id)))
+    ))
+
+(defn -main [& args]
+  (run-jetty #'app {:port 8080}))
 
 ;; ':join? false' will prevent jetty to run in foreground, which will block REPL.
 (comment 
 (def server 
   (run-jetty #'app {:port 8080 :join? false}))
 )
-
-(defn -main [& args]
-  (run-jetty #'app {:port 8080}))
