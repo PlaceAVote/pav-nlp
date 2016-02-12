@@ -44,7 +44,7 @@
                      (read-bill id-or-content))]
        (let [ret (sentiment/classify-string (sentiment/default-model) body)]
          (ok
-          (if (= ret 1)
+          (if (= ret "1")
             "positive"
             "negative")))
        (not-found)))

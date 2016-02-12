@@ -40,13 +40,28 @@
       io/resource
       load-model-memo))
 
+(defn- make-score-map
+  "Build a map with categories as keys and their score, as values."
+  [^DocumentCategorizerME model results]
+  (reduce
+   (fn [coll item]
+     (assoc coll (.getCategory model item) (nth results item)))
+   {}
+   (-> model .getNumberOfCategories range)))
+
 (defn classify-string
-  "Determine sentiment out of given string. Returns 1 if is positive or
-0 if is negative."
-  [^DoccatModel model ^String str]
-  (let [categorizer (DocumentCategorizerME. model)]
-    (if (= "1" (->> str
-                    (.categorize categorizer)
-                    (.getBestCategory categorizer)))
-      1
-      0)))
+  "Determine sentiment out of given string. Default option will return
+\"1\" for what appears positive or \"0\" for negative results.
+
+If you set 'details?' to true, it will return result as map, with detail
+scores per each category."
+  ([^DoccatModel model ^String str details?]
+     (let [categorizer (DocumentCategorizerME. model)
+           results     (.categorize categorizer str)
+           best        (.getBestCategory categorizer results)]
+       (if details?
+         (-> categorizer
+             (make-score-map results)
+             (assoc :result best))
+         best)))
+  ([^DoccatModel model ^String str] (classify-string model str false)))
