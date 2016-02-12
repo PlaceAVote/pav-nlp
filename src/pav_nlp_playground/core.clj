@@ -5,6 +5,7 @@
             [schema.core :as s]
             [clojure.tools.logging :as log]
             [ring.adapter.jetty :refer [run-jetty]]
+            [ring.middleware.cors :refer [wrap-cors]]
             [pav-nlp-playground.finder :as f]
             [pav-nlp-playground.sentiment :as sentiment]
             [pav-nlp-playground.summarizer :as summarizer]))
@@ -66,56 +67,59 @@
 (s/defschema StringList [s/Str])
 
 (def app
-  (api
-    {:swagger {:ui "/"
-               :spec "/swagger.json"
-               :data {:info {:version "0.1.0"
-                             :title "Simple NLP API"
-                             :description "Showcase for some NLP stuff we can use."
-                             :contact {:name "sz"
-                                       :email "sanel@placeavote.com"
-                                       :url "http://www.placeavote.com"}}
-                      :tags [{:name "nlp", :description "NLP section"}]}}}
-    (context "/find" []
-      :tags ["finder"]
-      (GET "/people/:bill_id" []
-        :return StringList
-        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2002)")]
-        :summary "Returns all person names recognized inside this bill."
-        (extract-something bill_id f/find-names))
-      (GET "/orgs/:bill_id" []
-        :return StringList
-        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
-        :summary "Returns all organzations recognized inside this bill."
-        (extract-something bill_id f/find-orgs))
-      (GET "/sentiment/:bill_id" []
-        :return String
-        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
-        :summary "Returns bill sentiment. For now, sentiment is generated based on Twitter messages tone as sample. Returns 'positive' or 'negative'."
-        (compute-sentiment bill_id))
-      (GET "/sentences/:bill_id" []
-        :return s/Any
-        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
-        :query-params [{ignore-case  :- (describe s/Bool "Ignore case for entity search.") false}
-                       {hi-tag-end   :- (describe String "End tag for highlighting matches. E.g. &lt/b&gt.") ""}
-                       {hi-tag-start :- (describe String "Start tag for highlighting matches. E.g. &ltb&gt.") ""}
-                       entities      :- (describe StringList "List of entities to be looked for")]
-        :summary "Find all sentences that has given entities. Optionally highlight them with desired html tags."
-        (find-matched-sentences bill_id entities hi-tag-start hi-tag-end ignore-case))
-      (GET "/summary/:bill_id" []
-        :return String
-        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
-        :summary "Attempts to summarize bill text."
-        (summarize bill_id)))
+  (->
+    (api
+     {:swagger {:ui   "/"
+                :spec "/swagger.json"
+                :data {:info {:version     "0.1.0"
+                              :title       "Simple NLP API"
+                              :description "Showcase for some NLP stuff we can use."
+                              :contact     {:name  "sz"
+                                            :email "sanel@placeavote.com"
+                                            :url   "http://www.placeavote.com"}}
+                       :tags [{:name "nlp", :description "NLP section"}]}}}
+     (context "/find" []
+       :tags ["finder"]
+       (GET "/people/:bill_id" []
+         :return StringList
+         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2002)")]
+         :summary "Returns all person names recognized inside this bill."
+         (extract-something bill_id f/find-names))
+       (GET "/orgs/:bill_id" []
+         :return StringList
+         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
+         :summary "Returns all organzations recognized inside this bill."
+         (extract-something bill_id f/find-orgs))
+       (GET "/sentiment/:bill_id" []
+         :return String
+         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
+         :summary "Returns bill sentiment. For now, sentiment is generated based on Twitter messages tone as sample. Returns 'positive' or 'negative'."
+         (compute-sentiment bill_id))
+       (GET "/sentences/:bill_id" []
+         :return s/Any
+         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
+         :query-params [{ignore-case :- (describe s/Bool "Ignore case for entity search.") false}
+                        {hi-tag-end :- (describe String "End tag for highlighting matches. E.g. &lt/b&gt.") ""}
+                        {hi-tag-start :- (describe String "Start tag for highlighting matches. E.g. &ltb&gt.") ""}
+                        entities :- (describe StringList "List of entities to be looked for")]
+         :summary "Find all sentences that has given entities. Optionally highlight them with desired html tags."
+         (find-matched-sentences bill_id entities hi-tag-start hi-tag-end ignore-case))
+       (GET "/summary/:bill_id" []
+         :return String
+         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
+         :summary "Attempts to summarize bill text."
+         (summarize bill_id)))
 
-    (context "/tags" []
-      :tags ["tags"]
-      (GET "/:bill_id" []
-           :return s/Any
-           :path-params [bill_id :- (describe String "Bill ID (e.g. hr2002)")]
-           :summary "Returns all tags related to the bill. Tags are split between people type tags and orgs type tags."
-           (extract-all-tags bill_id)))
-    ))
+     (context "/tags" []
+       :tags ["tags"]
+       (GET "/:bill_id" []
+         :return s/Any
+         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2002)")]
+         :summary "Returns all tags related to the bill. Tags are split between people type tags and orgs type tags."
+         (extract-all-tags bill_id)))
+     )
+    (wrap-cors :access-control-allow-origin [#".*"]
+               :access-control-allow-methods [:get :put :post :delete])))
 
 (defn -main [& args]
   (run-jetty #'app {:port 8080}))

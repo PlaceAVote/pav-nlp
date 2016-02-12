@@ -4,7 +4,8 @@
                  [instaparse "1.4.1"]
                  [metosin/compojure-api "1.0.0-RC1"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [ring/ring-jetty-adapter "1.4.0"]]
+                 [ring/ring-jetty-adapter "1.4.0"]
+                 [ring-cors "0.1.7"]]
   :global-vars {*warn-on-reflection* true}
   :uberjar-name "pav-nlp-playground.jar"
   :jvm-opts ["-server"]
