@@ -6,7 +6,8 @@
             [clojure.tools.logging :as log]
             [ring.adapter.jetty :refer [run-jetty]]
             [pav-nlp-playground.finder :as f]
-            [pav-nlp-playground.sentiment :as sentiment]))
+            [pav-nlp-playground.sentiment :as sentiment]
+            [pav-nlp-playground.summarizer :as summarizer]))
 
 (defn- read-bill
   "Read bill content using bill id, from predefined location."
@@ -55,6 +56,13 @@
                                              :ignore-case? icase?}))
     (not-found)))
 
+(defn- summarize
+  "Shorten bill content."
+  [^String id]
+  (if-let [body (read-bill id)]
+    (ok (summarizer/get-summary body))
+    (not-found)))
+
 (s/defschema StringList [s/Str])
 
 (def app
@@ -64,7 +72,6 @@
                :data {:info {:version "0.1.0"
                              :title "Simple NLP API"
                              :description "Showcase for some NLP stuff we can use."
-                             :termsOfService "http://www.placeavote.com"
                              :contact {:name "sz"
                                        :email "sanel@placeavote.com"
                                        :url "http://www.placeavote.com"}}
@@ -94,7 +101,13 @@
                        {hi-tag-start :- (describe String "Start tag for highlighting matches. E.g. &ltb&gt.") ""}
                        entities      :- (describe StringList "List of entities to be looked for")]
         :summary "Find all sentences that has given entities. Optionally highlight them with desired html tags."
-        (find-matched-sentences bill_id entities hi-tag-start hi-tag-end ignore-case) ))
+        (find-matched-sentences bill_id entities hi-tag-start hi-tag-end ignore-case))
+      (GET "/summary/:bill_id" []
+        :return String
+        :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
+        :summary "Attempts to summarize bill text."
+        (summarize bill_id)))
+
     (context "/tags" []
       :tags ["tags"]
       (GET "/:bill_id" []

@@ -94,7 +94,7 @@ fetched from Wikipedia."
   []
   (-> "models/en-sent.bin" io/resource n/make-sentence-detector))
 
-(def ^{:private true
+(def ^{:public true
        :doc "Cached version of build-sentence-detector."}
   build-sentence-detector-memo (memoize build-sentence-detector))
 
