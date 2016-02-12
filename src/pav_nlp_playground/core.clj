@@ -13,7 +13,7 @@
   "Read bill content using bill id, from predefined location."
   [^String id]
   (let [path (format "https://www.govtrack.us/data/congress/114/bills/hr/%s/text-versions/ih/document.txt" id)]
-  (try 
+  (try
     (log/infof "Reading bill '%s' from '%s'..." id path)
     (slurp path)
     (catch java.io.FileNotFoundException e
@@ -37,14 +37,17 @@
 
 (defn- compute-sentiment
   "Calculate sentiment."
-  [^String id]
-  (if-let [body (read-bill id)]
-    (let [ret (sentiment/classify-string (sentiment/default-model) body)]
-      (ok 
-       (if (= ret 1)
-         "positive"
-         "negative")))
-    (not-found)))
+  ([^String id-or-content is-content?]
+     (if-let [body (if is-content?
+                     id-or-content
+                     (read-bill id-or-content))]
+       (let [ret (sentiment/classify-string (sentiment/default-model) body)]
+         (ok
+          (if (= ret 1)
+            "positive"
+            "negative")))
+       (not-found)))
+  ([^String id-or-content] (compute-sentiment id-or-content false)))
 
 (defn- find-matched-sentences
   "Find sentences that has given entities or tags. Highlight them optionally."
@@ -93,6 +96,11 @@
         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
         :summary "Returns bill sentiment. For now, sentiment is generated based on Twitter messages tone as sample. Returns 'positive' or 'negative'."
         (compute-sentiment bill_id))
+      (POST "/sentiment" []
+        :return String
+        :body-params [content :- (describe String "Input text for analyzing.")]
+        :summary "Analyze sentiment of given text."
+        (compute-sentiment content true))
       (GET "/sentences/:bill_id" []
         :return s/Any
         :path-params [bill_id :- (describe String "Bill ID (e.g. hr2003)")]
@@ -121,7 +129,7 @@
   (run-jetty #'app {:port 8080}))
 
 ;; ':join? false' will prevent jetty to run in foreground, which will block REPL.
-(comment 
-(def server 
+(comment
+(def server
   (run-jetty #'app {:port 8080 :join? false}))
 )
