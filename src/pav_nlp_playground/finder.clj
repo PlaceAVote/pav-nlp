@@ -61,18 +61,33 @@ cause some false detections."
        :doc "Cached version of NER loaders."}
   build-finders-memo (memoize build-finders))
 
-(defn find-names
-  "Find all english names in string." 
+(defn- find-names-raw
+  "Sometimes 'find-names' can fail to find names not present in
+trained model, so this function will try to do it, by searching for
+Mr./Ms. prefixed names. In future, we could use it to re-train existing
+model for further improvements.
+
+Will not match names like 'Mr.Foo' since it will also match 'MrFoo'."
   [s]
-  (let [[tokenize name-find] (build-finders-memo "models/en-ner-person.bin")]
+  (->> s
+       (re-seq #"(Mr|Mrs|Ms|Miss)\.?\s+[A-Z]\w+")
+       ;; also cleanup cases like 'Mr. \n DeLauro'
+       (map #(-> % first (s/replace #"[\n\t ]+" " ")))))
+
+(defn find-names
+  "Find all english names in string. First it will use NLP model for that,
+then will fallback to raw search, based on gender prefixes."
+  [s]
+  (let [[tokenize name-find] (build-finders-memo "models/en-ner-person.bin")
+        nlp-names (-> s tokenize name-find filter-out-junk)]
     (-> s
-        tokenize
-        name-find
-        filter-out-junk
+        find-names-raw
+        (concat nlp-names)
+        set
         sort)))
 
 (defn find-orgs
-  "Find all organizations in string." 
+  "Find all organizations in string."
   [s]
   (let [[tokenize org-find] (build-finders-memo "models/en-ner-organization.bin")]
     (-> s
