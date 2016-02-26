@@ -41,9 +41,11 @@ url path."
        (range (int \a)
               (inc (int \z)))))
 
+(comment
 (-> "https://www.usa.gov/federal-agencies/a"
     java.net.URL.
     html/html-resource
     (html/select [:ul.one_column_bullet :li :a])
     url-only
     clojure.pprint/pprint)
+)
