@@ -3,7 +3,6 @@
   (:require [net.cgrand.enlive-html :as html]
             [clojure.string :as s]))
 
-
 (defn- fix-name
   "Take input as 'Last Name, First Name' and produce map of
 '{:first First Name :last Last Name}'."
