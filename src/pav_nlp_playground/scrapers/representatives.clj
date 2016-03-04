@@ -1,4 +1,4 @@
-(ns pav-nlp-playground.scraper.representatives
+(ns pav-nlp.scraper.representatives
   "Scrape representatives from http://www.house.gov/representatives/"
   (:require [net.cgrand.enlive-html :as html]
             [clojure.string :as s]))

@@ -1,4 +1,4 @@
-(defproject pav-nlp-playground "0.1.0-SNAPSHOT"
+(defproject pav-nlp "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [clojure-opennlp "0.3.3"]
                  [instaparse "1.4.1"]
@@ -8,7 +8,7 @@
                  [ring-cors "0.1.7"]
                  [enlive "1.1.6"]]
   :global-vars {*warn-on-reflection* true}
-  :uberjar-name "pav-nlp-playground.jar"
+  :uberjar-name "pav-nlp.jar"
   :jvm-opts ["-server"]
   :repl-options {:port 7888}
-  :main pav-nlp-playground.core)
+  :main pav-nlp.core)

@@ -1,4 +1,4 @@
-(ns pav-nlp-playground.sentiment
+(ns pav-nlp.sentiment
   "Sentiment analysis using document analyzer (maxent)."
   (:require [clojure.java.io :as io])
   (:import [opennlp.tools.doccat DoccatModel DocumentCategorizerME DocumentSampleStream]

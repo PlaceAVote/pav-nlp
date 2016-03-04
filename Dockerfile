@@ -1,5 +1,5 @@
 FROM clojure
-ENV APP_JAR pav-nlp-playground.jar
+ENV APP_JAR pav-nlp.jar
 
 WORKDIR /app
 COPY . /app

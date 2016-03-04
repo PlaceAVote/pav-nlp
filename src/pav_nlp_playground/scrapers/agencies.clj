@@ -1,4 +1,4 @@
-(ns pav-nlp-playground.scraper.representatives
+(ns pav-nlp.scraper.representatives
   "Scrape all government agencies from https://www.usa.gov/federal-agencies"
   (:require [net.cgrand.enlive-html :as html]
             [clojure.string :as s]))

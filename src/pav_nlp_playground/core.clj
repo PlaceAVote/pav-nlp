@@ -1,4 +1,4 @@
-(ns pav-nlp-playground.core
+(ns pav-nlp.core
   (:gen-class)
   (:require [compojure.api.sweet :refer :all]
             [ring.util.http-response :refer :all]
@@ -6,9 +6,9 @@
             [clojure.tools.logging :as log]
             [ring.adapter.jetty :refer [run-jetty]]
             [ring.middleware.cors :refer [wrap-cors]]
-            [pav-nlp-playground.finder :as f]
-            [pav-nlp-playground.sentiment :as sentiment]
-            [pav-nlp-playground.summarizer :as summarizer]))
+            [pav-nlp.finder :as f]
+            [pav-nlp.sentiment :as sentiment]
+            [pav-nlp.summarizer :as summarizer]))
 
 (defn- read-bill
   "Read bill content using bill id, from predefined location."

@@ -1,9 +1,9 @@
-(ns pav-nlp-playground.summarizer
+(ns pav-nlp.summarizer
   "Simpla, naive summarizer based on 
 https://gist.github.com/shlomibabluki/5473521 code."
   (:require [clojure.string :as s]
             [clojure.set :as st]
-            [pav-nlp-playground.finder :as f]
+            [pav-nlp.finder :as f]
             [opennlp.nlp :as n]))
 
 (defn- sentences-intersection
@@ -60,7 +60,7 @@ https://gist.github.com/shlomibabluki/5473521 code."
       (dotimes [j len]
         (let [intersection (sentences-intersection (nth sentences i)
                                                    (nth sentences j))]
-          ;(printf "%s = [%s] | [%s]\n\n" intersection (nth sentences i) (nth sentences j))
+          (printf "%s = [%s] | [%s]\n\n" intersection (nth sentences i) (nth sentences j))
           (aset values i j intersection))))
     ;(clojure.pprint/pprint (vec values))
     (build-rank-map sentences values)))
@@ -94,10 +94,12 @@ https://gist.github.com/shlomibabluki/5473521 code."
   ([content] (get-summary content (get-ranks content))))
 
 (comment
+
 (def sample "Lior Degani, the Co-Founder and head of Marketing of Swayy, pinged me last week when I was in California to tell me about his startup and give me beta access. I hear d his pitch and was skeptical. I was also tired, cranky and missing my kids \u2013 so my frame of mind wasn\u2019t the most positive.
 
     I went into Swayy to check it out, and when it asked for access to my Twitter and permission to tweet from my account, all I could think was, \u201CIf this thing spams my Twitter account I am going to bitch-slap him all over the Internet.\u201D Fortunately that thought stayed in my head, and not out of my mouth.")
 
-;(def o (get-summary sample (get-ranks sample)))
+(def o (get-summary sample (get-ranks sample)))
+
 ;(clojure.pprint/pprint (get-ranks sample))
 )

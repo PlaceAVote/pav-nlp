@@ -1,4 +1,4 @@
-(ns pav-nlp-playground.finder
+(ns pav-nlp.finder
   (:require [opennlp.nlp :as n]
             [clojure.string :as s]
             [clojure.java.io :as io])

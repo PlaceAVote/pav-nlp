@@ -1,6 +1,6 @@
-(ns pav-nlp-playground.sentiment-test
+(ns pav-nlp.sentiment-test
   (:require [clojure.test :refer :all]
-            [pav-nlp-playground.sentiment :as sen]))
+            [pav-nlp.sentiment :as sen]))
 
 (defn- my-classify [s details?]
   (sen/classify-string (sen/default-model) s details?))
